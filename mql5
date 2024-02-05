@@ -1,0 +1,83 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                                     MA3 Trend MT5 |
+//|                     Copyright 2021, Forex Robot Easy Team         |
+//|                                            https://forexroboteasy.com |
+//+------------------------------------------------------------------+
+
+#property indicator_chart_window
+#property indicator_buffers 2
+#property indicator_color1 Red
+#property indicator_color2 Blue
+
+//--- input parameters
+input int maPeriod1 = 10; // Period for the first MA
+input int maPeriod2 = 20; // Period for the second MA
+input int maPeriod3 = 30; // Period for the third MA
+input color maColor = clrGreen; // Color for the MA lines
+input int maWidth = 2; // Width for the MA lines
+
+//--- buffers
+double maBuffer1[];
+double maBuffer2[];
+
+//+------------------------------------------------------------------+
+//| Custom indicator initialization function                         |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+   //--- indicator buffers mapping
+   SetIndexBuffer(0, maBuffer1);
+   SetIndexBuffer(1, maBuffer2);
+
+   //--- indicator line settings
+   SetIndexStyle(0, DRAW_LINE);
+   SetIndexStyle(1, DRAW_LINE);
+   SetIndexLabel(0, 'MA1');
+   SetIndexLabel(1, 'MA2');
+   
+   SetIndexDrawBegin(0, maPeriod1);
+   SetIndexDrawBegin(1, maPeriod2);
+   
+   SetIndexShift(0, maPeriod3);
+   SetIndexShift(1, maPeriod3);
+
+   //--- indicator colors
+   SetIndexColor(0, maColor);
+   SetIndexColor(1, maColor);
+
+   return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Custom indicator iteration function                              |
+//+------------------------------------------------------------------+
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime &time[],
+                const double &open[],
+                const double &high[],
+                const double &low[],
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
+{
+   //--- check for bars count
+   if(rates_total < maPeriod3)
+      return(0);
+
+   //--- calculate MA values
+   ArraySetAsSeries(close, true);
+   ArraySetAsSeries(maBuffer1, true);
+   ArraySetAsSeries(maBuffer2, true);
+
+   for(int i = prev_calculated; i < rates_total; i++)
+   {
+      maBuffer1[i] = iMA(NULL, 0, maPeriod1, 0, MODE_EMA, PRICE_CLOSE, i);
+      maBuffer2[i] = iMA(NULL, 0, maPeriod2, 0, MODE_EMA, PRICE_CLOSE, i);
+   }
+
+   //--- return the number of calculated bars
+   return(rates_total);
+}
